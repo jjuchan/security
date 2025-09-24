@@ -1,11 +1,13 @@
 'use client'
 
+import { components } from '@/lib/backend/apiV1/schema'
 import { apiFetch } from '@/lib/backend/client'
-import { PostDto } from '@/types/post'
 import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
 
 export default function Page({ params }: { params: Promise<{ id: number }> }) {
+    type PostDto = components['schemas']['PostWithAuthorDto']
+
     const { id } = use(params)
 
     const [post, setPost] = useState<PostDto | null>(null)
@@ -43,14 +45,10 @@ export default function Page({ params }: { params: Promise<{ id: number }> }) {
                 title: titleInput.value,
                 content: contentInput.value,
             }),
+        }).then((data) => {
+            alert(data.msg)
+            router.replace(`/posts/${id}`)
         })
-            .then((data) => {
-                alert(data.msg)
-                router.replace(`/posts/${id}`)
-            })
-            .catch((error) => {
-                alert(`${error.resultCode} : ${error.msg}`)
-            })
     }
 
     useEffect(() => {
