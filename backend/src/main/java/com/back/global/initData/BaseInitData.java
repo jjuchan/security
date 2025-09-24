@@ -37,7 +37,7 @@ public class BaseInitData {
     @Transactional
     public void work1() {
         if (memberService.count() > 0) return;
-        
+
         Member memberSystem = memberService.join("system", "1234", "시스템");
         if (AppConfig.isNotProd()) memberSystem.modifyApiKey(memberSystem.getUsername());
 
