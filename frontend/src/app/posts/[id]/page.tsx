@@ -5,32 +5,43 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { apiFetch, client } from "@/lib/backend/client";
+import { client } from "@/lib/backend/client";
 
 import { components } from "../../../lib/backend/apiV1/schema.d";
+import usePost from "./_hooks/usePost";
 
 export default function Page({ params }: { params: Promise<{ id: number }> }) {
-  type PostDto = components["schemas"]["PostWithAuthorDto"];
   type PostCommentDto = components["schemas"]["PostCommentDto"];
 
-  const [post, setPost] = useState<PostDto | null>(null);
   const [postComments, setPostComments] = useState<PostCommentDto[] | null>(
     null,
   );
 
   const { id } = use(params);
 
+  const post = usePost(id);
+
   const router = useRouter();
 
   const deletePost = (id: number) => {
     if (!confirm("정말 삭제하시겠습니까?")) return;
 
-    apiFetch(`/api/v1/posts/${id}`, {
-      method: "DELETE",
-    }).then((data) => {
-      alert(data.msg);
-      router.replace("/posts");
-    });
+    client
+      .DELETE("/api/v1/posts/{id}", {
+        params: {
+          path: {
+            id,
+          },
+        },
+      })
+      .then((res) => {
+        if (res.error) {
+          alert(res.error.msg);
+          return;
+        }
+        alert(res.data.msg);
+        router.replace("/posts");
+      });
   };
 
   const deletePostComment = (id: number, commentId: number) => {
@@ -103,23 +114,6 @@ export default function Page({ params }: { params: Promise<{ id: number }> }) {
 
   useEffect(() => {
     client
-      .GET("/api/v1/posts/{id}", {
-        params: {
-          path: {
-            id,
-          },
-        },
-      })
-      .then((res) => {
-        if (res.error) {
-          alert(res.error.msg);
-          return;
-        }
-
-        setPost(res.data);
-      });
-
-    client
       .GET("/api/v1/posts/{postId}/comments", {
         params: {
           path: {
@@ -142,19 +136,22 @@ export default function Page({ params }: { params: Promise<{ id: number }> }) {
     <>
       <h1>게시글 상세페이지</h1>
       <>
-        <div>게시글 번호: {post?.id}</div>
-        <div>게시글 제목: {post?.title}</div>
-        <div>게시글 내용: {post?.content}</div>
+        <div>게시글 번호: {post.post?.id}</div>
+        <div>게시글 제목: {post.post?.title}</div>
+        <div>게시글 내용: {post.post?.content}</div>
       </>
 
       <div className="flex gap-2">
         <button
-          onClick={() => deletePost(post.id)}
+          onClick={() => deletePost(post.post?.id!)}
           className="p-2 rounded border"
         >
           삭제
         </button>
-        <Link className="p-2 rounded border" href={`/posts/${post.id}/edit`}>
+        <Link
+          className="p-2 rounded border"
+          href={`/posts/${post.post?.id}/edit`}
+        >
           수정
         </Link>
       </div>
