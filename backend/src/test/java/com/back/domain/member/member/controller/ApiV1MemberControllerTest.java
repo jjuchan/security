@@ -142,30 +142,30 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.data.nickname").value(member.getNickname()));
     }
 
-        @Test
-        @DisplayName("내 정보, with apiKey Cookie")
-        @WithUserDetails("user1")
-        void t4() throws Exception {
+    @Test
+    @DisplayName("내 정보, with apiKey Cookie")
+    @WithUserDetails("user1")
+    void t4() throws Exception {
 
-            ResultActions resultActions = mvc
-                    .perform(
-                            get("/api/v1/members/me")
-                    )
-                    .andDo(print());
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me")
+                )
+                .andDo(print());
 
-            Member member = memberService.findByUsername("user1").get();
+        Member member = memberService.findByUsername("user1").get();
 
-            resultActions
-                    .andExpect(handler().handlerType(ApiV1MemberController.class))
-                    .andExpect(handler().methodName("me"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resultCode").value("200-1"))
-                    .andExpect(jsonPath("$.msg").value("%s님 정보입니다.".formatted(member.getNickname())))
-                    .andExpect(jsonPath("$.data").exists())
-                    .andExpect(jsonPath("$.data.id").value(member.getId()))
-                    .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(member.getCreateDate().toString().substring(0, 25))))
-                    .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(member.getModifyDate().toString().substring(0, 25))))
-                    .andExpect(jsonPath("$.data.nickname").value(member.getNickname()));
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(handler().methodName("me"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value("200-1"))
+                .andExpect(jsonPath("$.msg").value("%s님 정보입니다.".formatted(member.getNickname())))
+                .andExpect(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data.id").value(member.getId()))
+                .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(member.getCreateDate().toString().substring(0, 25))))
+                .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(member.getModifyDate().toString().substring(0, 25))))
+                .andExpect(jsonPath("$.data.nickname").value(member.getNickname()));
     }
 
 
@@ -185,14 +185,20 @@ public class ApiV1MemberControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("로그아웃 되었습니다."))
                 .andExpect(
-                result -> {
-                    Cookie apiKeyCookie= result.getResponse().getCookie("apiKey");
-                    assertThat(apiKeyCookie.getValue()).isEmpty();
-                    assertThat(apiKeyCookie.getMaxAge()).isEqualTo(0);
-                    assertThat(apiKeyCookie.getPath()).isEqualTo("/");
-                    assertThat(apiKeyCookie.getAttribute("HttpOnly")).isEqualTo("true");
-                }
-        );
+                        result -> {
+                            Cookie apiKeyCookie= result.getResponse().getCookie("apiKey");
+                            assertThat(apiKeyCookie.getValue()).isEmpty();
+                            assertThat(apiKeyCookie.getMaxAge()).isEqualTo(0);
+                            assertThat(apiKeyCookie.getPath()).isEqualTo("/");
+                            assertThat(apiKeyCookie.getAttribute("HttpOnly")).isEqualTo("true");
+
+                            Cookie accessTokenCookie= result.getResponse().getCookie("accessToken");
+                            assertThat(accessTokenCookie.getValue()).isEmpty();
+                            assertThat(accessTokenCookie.getMaxAge()).isEqualTo(0);
+                            assertThat(accessTokenCookie.getPath()).isEqualTo("/");
+                            assertThat(accessTokenCookie.getAttribute("HttpOnly")).isEqualTo("true");
+                        }
+                );
     }
 
     @Test
