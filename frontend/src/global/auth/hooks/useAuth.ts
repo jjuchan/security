@@ -1,6 +1,6 @@
 import { components } from "@/global/backend/apiV1/schema";
 import { client } from "@/global/backend/client";
-import { useEffect, useState } from "react";
+import { createContext, use, useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -26,15 +26,32 @@ export default function useAuth() {
         return;
       }
 
+      // UI 로그아웃 처리
+      setLoginMember(null);
+
       router.replace("/posts");
     });
   };
 
-  if (isLogin) return { isLogin: true, loginMember, logout } as const;
+  if (isLogin)
+    return { isLogin: true, loginMember, logout, setLoginMember } as const;
 
   return {
     isLogin: false,
     loginMember: null,
     logout,
+    setLoginMember,
   } as const;
+}
+
+export const AuthContext = createContext<ReturnType<typeof useAuth> | null>(
+  null,
+);
+
+export function useAuthContext() {
+  const authState = use(AuthContext);
+
+  if (authState === null) throw new Error("AuthContext is not found");
+
+  return authState;
 }
